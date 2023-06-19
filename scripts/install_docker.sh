@@ -125,14 +125,22 @@ install -Dm755  "${tmp_dir}/steamos-docker.sh" "${target_dir}/etc/profile.d/stea
 
 # All sudo calls
 sudo chown -R root:root ${target_dir}
+# Ensure that cleanup will work with the target_dir as root
+function cleanup_tmpdir {
+    cd ~
+    if [[ "${target_dir}" != "/" ]]; then
+        sudo rm -rf $tmp_dir
+    fi
+}
 sudo rsync -avh  ${target_dir}/opt /
 sudo rsync -avh  ${target_dir}/etc /
+# Cleanup
 if [[ "${target_dir}" != "/" ]]; then
     sudo rm -rf ${target_dir}
+    trap '' EXIT
 fi
 sudo systemd-sysusers
 sudo systemctl daemon-reload
-#sudo groupadd docker
 
 echo "Docker is installed. If you want to use it now please run the following command :"
 echo 'export PATH="/opt/steamos-docker/bin:$PATH"'
